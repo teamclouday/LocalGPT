@@ -12,48 +12,16 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    pull_policy: always
     tty: true
     env_file:
       - path: .env
         required: true
       - path: .env.local
         required: false
-    networks:
-      - localgpt-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["0"]
-              capabilities: [gpu]
-        limits:
-          memory: 16G
-
-  text-embeddings-inference:
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.7
-    ports:
-      - "${TEXT_EMBEDDINGS_PORT}:80"
-    healthcheck:
-      test: >
-        curl --fail http://localhost:80/health || exit 1
-      interval: 5m
-      timeout: 30s
-      retries: 5
-      start_period: 1m
-    environment:
-      - NVIDIA_DISABLE_REQUIRE=1
-    volumes:
-      - "./models:/models"
     command: >
-      --model-id ${TEXT_EMBEDDINGS_MODEL}
-      --max-batch-tokens=${TEXT_EMBEDDINGS_MAX_BATCH_TOKENS}
-    tty: true
-    env_file:
-      - path: .env
-        required: true
-      - path: .env.local
-        required: false
+      --jinja
+      --reasoning-format deepseek
     networks:
       - localgpt-network
     deploy:
@@ -61,40 +29,17 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["0"]
+              count: 1
               capabilities: [gpu]
-        limits:
-          memory: 4G
 
-  chat-ui-mongodb:
-    image: mongo:latest
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.6.5
     ports:
-      - "${CHAT_UI_MONGO_PORT}:27017"
+      - "${CHAT_UI_PORT}:8080"
     volumes:
-      - chat-ui-mongodb:/data/db
-    tty: true
-    env_file:
-      - path: .env
-        required: true
-      - path: .env.local
-        required: false
-    networks:
-      - localgpt-network
-
-  chat-ui:
-    image: ghcr.io/huggingface/chat-ui-db:latest
-    ports:
-      - "${CHAT_UI_PORT}:3000"
-    environment:
-      - MONGODB_URL=mongodb://chat-ui-mongodb:27017
-      - USE_LOCAL_WEBSEARCH=true
-      - WEBSEARCH_JAVASCRIPT=true
-    volumes:
-      - chat-ui-db:/data
+      - open-webui:/app/backend/data
     depends_on:
-      - chat-ui-mongodb
       - llama-cpp
-      - text-embeddings-inference
     tty: true
     env_file:
       - path: .env
@@ -105,8 +50,7 @@ services:
       - localgpt-network
 
 volumes:
-  chat-ui-db:
-  chat-ui-mongodb:
+  open-webui:
 
 networks:
   localgpt-network:
