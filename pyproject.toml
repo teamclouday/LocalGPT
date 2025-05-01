@@ -1,0 +1,10 @@
+[project]
+name = "localgpt"
+version = "0.1.0"
+description = "My local LLM inference setup"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "huggingface-hub>=0.30.2",
+    "python-dotenv>=1.1.0",
+]
