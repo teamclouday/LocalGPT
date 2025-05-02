@@ -22,7 +22,6 @@ services:
     command: >
       --jinja
       --reasoning-format deepseek
-      -ot "\d+.ffn_.*_exps.=CPU"
     networks:
       - localgpt-network
     deploy:
