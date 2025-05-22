@@ -33,13 +33,14 @@ services:
               capabilities: [gpu]
 
   open-webui:
-    image: ghcr.io/open-webui/open-webui:v0.6.5
+    image: ghcr.io/open-webui/open-webui:latest
     ports:
       - "${CHAT_UI_PORT}:8080"
     volumes:
       - open-webui:/app/backend/data
     depends_on:
       - llama-cpp
+    pull_policy: always
     tty: true
     env_file:
       - path: .env
